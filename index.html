@@ -3,132 +3,347 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>kNN 알고리즘 시뮬레이터</title>
+    <title>kNN 알고리즘 시뮬레이터 - 박호림 & Gemini</title>
     <style>
+        /* 전체 레이아웃 및 폰트 설정 */
         body {
-            font-family: 'Pretendard', sans-serif;
-            background-color: #f0f2f5;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: #f8f9fa;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 30px;
+            color: #333;
         }
-        h1 { color: #333; margin-bottom: 10px; }
+
+        /* 헤더 영역 스타일 */
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        h1 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 2rem;
+        }
+        .creator-badge {
+            background-color: #e3f2fd; /* 연한 파란색 배경 */
+            color: #1565c0;           /* 진한 파란색 글씨 */
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            display: inline-block;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid #bbdefb;
+        }
+
+        /* 컨트롤 패널 스타일 */
         .controls {
             background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 20px 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             margin-bottom: 20px;
             display: flex;
-            gap: 20px;
+            gap: 25px;
             align-items: center;
+            justify-content: center;
             flex-wrap: wrap;
+            border: 1px solid #eee;
+            max-width: 900px;
         }
+        
         .control-group {
             display: flex;
             align-items: center;
             gap: 10px;
         }
+
+        label { font-weight: 600; }
+
+        /* 버튼 스타일 */
         button {
-            padding: 8px 16px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
-            transition: 0.2s;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            margin: 0 2px;
         }
-        .btn-red { background-color: #ffadad; color: #d32f2f; }
-        .btn-blue { background-color: #9bf6ff; color: #0288d1; }
-        .btn-reset { background-color: #e0e0e0; color: #333; }
-        button:hover { transform: scale(1.05); }
-        
+        button:active { transform: scale(0.95); }
+
+        /* 데이터 추가 버튼 컨테이너 */
+        #class-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-reset { 
+            background-color: #f5f5f5; 
+            color: #616161; 
+            border: 1px solid #e0e0e0;
+        }
+        .btn-reset:hover { background-color: #e0e0e0; }
+
+        /* 캔버스 스타일 */
         #canvas-container {
             position: relative;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-radius: 12px;
             overflow: hidden;
             cursor: crosshair;
+            border: 2px solid #fff;
         }
-        canvas { background-color: white; display: block; }
-        
-        .status {
-            margin-top: 15px;
-            font-size: 1.2rem;
+        canvas { 
+            background-color: white; 
+            display: block; 
+        }
+
+        /* 상태 표시줄 스타일 */
+        .status-bar {
+            margin-top: 20px;
+            padding: 15px 25px;
+            background: white;
+            border-radius: 50px;
+            font-size: 1.1rem;
             font-weight: bold;
             color: #555;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
         }
-        #prediction-result { color: #333; }
+        
+        .prediction-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            display: inline-block;
+            background-color: #ccc;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        /* 설명 패널 스타일 (새로 추가됨) */
+        .guide-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            max-width: 800px;
+            width: 100%;
+            padding: 25px;
+            border: 1px solid #eee;
+        }
+
+        .guide-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #e3f2fd;
+            padding-bottom: 10px;
+        }
+
+        .guide-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            line-height: 1.6;
+            color: #444;
+        }
+
+        .guide-section {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .guide-section h3 {
+            font-size: 1.1rem;
+            color: #1565c0;
+            margin: 0 0 10px 0;
+        }
+
+        .guide-list {
+            padding-left: 20px;
+            margin: 0;
+        }
+        .guide-list li { margin-bottom: 8px; }
+
+        /* 반응형 처리 */
+        @media (max-width: 700px) {
+            canvas { width: 100%; height: auto; }
+            .controls { flex-direction: column; gap: 15px; }
+            #class-buttons { flex-wrap: wrap; justify-content: center; }
+        }
     </style>
 </head>
 <body>
 
-    <h1>🔍 kNN 알고리즘 시뮬레이터</h1>
+    <header>
+        <h1>🔍 kNN (k-최근접 이웃) 시뮬레이터</h1>
+        <div class="creator-badge">아이디어-박호림, 개발-gemini</div>
+    </header>
     
     <div class="controls">
         <div class="control-group">
-            <label for="k-value"><strong>K 값 (이웃 수):</strong> <span id="k-display">3</span></label>
-            <input type="range" id="k-value" min="1" max="15" value="3">
+            <label for="class-count">그룹(클래스) 개수: <span id="class-count-display" style="color:#333;">2</span>개</label>
+            <input type="range" id="class-count" min="2" max="4" value="2">
+        </div>
+
+        <div class="control-group">
+            <label for="k-value">k 값 (이웃 수): <span id="k-display" style="color:#29b6f6; font-size:1.2em;">3</span></label>
+            <input type="range" id="k-value" min="1" max="15" step="2" value="3">
         </div>
         
         <div class="control-group">
-            <span>데이터 추가 모드:</span>
-            <button class="btn-red" onclick="setMode('red')">Red 그룹</button>
-            <button class="btn-blue" onclick="setMode('blue')">Blue 그룹</button>
+            <span>데이터 추가:</span>
+            <div id="class-buttons">
+                <!-- 자바스크립트로 버튼이 동적 생성됩니다 -->
+            </div>
         </div>
 
         <button class="btn-reset" onclick="resetData()">초기화</button>
     </div>
 
     <div id="canvas-container">
-        <canvas id="knnCanvas" width="600" height="400"></canvas>
+        <canvas id="knnCanvas" width="800" height="500"></canvas>
     </div>
 
-    <div class="status">
-        현재 마우스 위치의 예측 등급: <span id="prediction-result">이동하여 확인</span>
+    <div class="status-bar">
+        <span>현재 위치 예측 결과:</span>
+        <span id="prediction-dot" class="prediction-dot"></span>
+        <span id="prediction-text">데이터 위로 마우스를 올려보세요</span>
+    </div>
+
+    <!-- 설명 패널 추가 -->
+    <div class="guide-panel">
+        <div class="guide-title">💡 kNN 알고리즘이란?</div>
+        <div class="guide-content">
+            <div class="guide-section">
+                <h3>핵심 원리</h3>
+                <p>
+                    <strong>"유유상종"</strong>: 비슷한 것끼리 모인다는 뜻입니다.<br>
+                    새로운 데이터가 들어왔을 때, 가장 가까운 <strong>k개의 이웃</strong>을 살펴보고<br>
+                    <strong>다수결</strong>로 자신의 그룹을 정하는 가장 직관적인 머신러닝 알고리즘입니다.
+                </p>
+            </div>
+            <div class="guide-section">
+                <h3>시뮬레이터 사용법</h3>
+                <ul class="guide-list">
+                    <li>🖱️ <strong>마우스 이동</strong>: 마우스 커서가 '새로운 데이터' 역할을 합니다.</li>
+                    <li>📏 <strong>점선</strong>: 가장 가까운 이웃(k개)들과 연결된 선입니다.</li>
+                    <li>📊 <strong>k 값 조절</strong>: 슬라이더로 투표에 참여할 이웃의 수를 변경해 보세요.</li>
+                    <li>➕ <strong>클릭</strong>: 화면을 클릭하면 해당 위치에 훈련 데이터를 추가합니다.</li>
+                </ul>
+            </div>
+        </div>
     </div>
 
     <script>
+        /**
+         * kNN Simulator Logic
+         * 아이디어: 박호림, 개발: Gemini
+         */
+
         const canvas = document.getElementById('knnCanvas');
         const ctx = canvas.getContext('2d');
+        
+        // UI Elements
         const kSlider = document.getElementById('k-value');
         const kDisplay = document.getElementById('k-display');
-        const resultSpan = document.getElementById('prediction-result');
+        const classCountSlider = document.getElementById('class-count');
+        const classCountDisplay = document.getElementById('class-count-display');
+        const classButtonsContainer = document.getElementById('class-buttons');
+        const predText = document.getElementById('prediction-text');
+        const predDot = document.getElementById('prediction-dot');
+
+        // Configuration for Classes
+        const CLASS_CONFIG = [
+            { id: 'red', label: 'Red', color: '#ff5252', darkColor: '#d32f2f', btnBg: '#ffebee', btnBorder: '#ffcdd2' },
+            { id: 'blue', label: 'Blue', color: '#448aff', darkColor: '#1565c0', btnBg: '#e3f2fd', btnBorder: '#bbdefb' },
+            { id: 'green', label: 'Green', color: '#00e676', darkColor: '#00c853', btnBg: '#e8f5e9', btnBorder: '#c8e6c9' },
+            { id: 'purple', label: 'Purple', color: '#e040fb', darkColor: '#aa00ff', btnBg: '#f3e5f5', btnBorder: '#e1bee7' }
+        ];
 
         let points = [];
-        let currentMode = 'red'; // 'red' or 'blue'
-        let mouseX = -100;
-        let mouseY = -100;
+        let currentMode = 'red'; // 현재 선택된 데이터 추가 모드
+        let mouseX = -1000;
+        let mouseY = -1000;
+        let activeClassCount = 2;
 
-        // 초기 데이터 생성
+        // 버튼 UI 동적 생성
+        function updateClassButtons() {
+            classButtonsContainer.innerHTML = '';
+            for (let i = 0; i < activeClassCount; i++) {
+                const config = CLASS_CONFIG[i];
+                const btn = document.createElement('button');
+                btn.textContent = config.label;
+                btn.style.backgroundColor = config.btnBg;
+                btn.style.color = config.darkColor;
+                btn.style.border = `1px solid ${config.btnBorder}`;
+                
+                // 활성 상태 스타일 적용
+                if (currentMode === config.id) {
+                    btn.style.backgroundColor = config.color;
+                    btn.style.color = 'white';
+                    btn.style.boxShadow = 'inset 0 0 5px rgba(0,0,0,0.2)';
+                }
+
+                btn.onclick = () => setMode(config.id);
+                classButtonsContainer.appendChild(btn);
+            }
+        }
+
+        // 초기 데이터 랜덤 생성
         function initData() {
-            for(let i=0; i<10; i++) {
-                points.push({ x: Math.random()*600, y: Math.random()*400, group: 'red' });
-                points.push({ x: Math.random()*600, y: Math.random()*400, group: 'blue' });
+            points = [];
+            // 현재 활성화된 클래스 개수만큼 반복
+            for (let i = 0; i < activeClassCount; i++) {
+                const config = CLASS_CONFIG[i];
+                // 각 그룹마다 랜덤 위치에 10개씩 생성
+                for(let j = 0; j < 10; j++) {
+                    // 그룹별로 약간 뭉쳐서 나오도록 좌표 범위 조정
+                    let centerX, centerY;
+                    if(i === 0) { centerX = 200; centerY = 150; }       // Red (Top-Left)
+                    else if(i === 1) { centerX = 600; centerY = 350; }  // Blue (Bottom-Right)
+                    else if(i === 2) { centerX = 600; centerY = 150; }  // Green (Top-Right)
+                    else { centerX = 200; centerY = 350; }              // Purple (Bottom-Left)
+
+                    points.push({ 
+                        x: centerX + (Math.random() * 300 - 150), 
+                        y: centerY + (Math.random() * 200 - 100), 
+                        group: config.id 
+                    });
+                }
             }
             draw();
         }
 
-        function setMode(mode) {
-            currentMode = mode;
-            // 버튼 스타일 업데이트 로직은 생략하고 직관적으로 처리
+        // 입력 모드 변경
+        function setMode(modeId) {
+            currentMode = modeId;
+            updateClassButtons();
         }
 
+        // 초기화 버튼
         function resetData() {
-            points = [];
-            draw();
+            initData();
+            updateStatus(null);
         }
 
-        // 유클리드 거리 계산 함수
+        // 유클리드 거리 계산
         function getDistance(p1, p2) {
             return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
         }
 
-        // kNN 핵심 로직
+        // kNN 예측 알고리즘 (다중 클래스 지원)
         function predict(x, y, k) {
             if (points.length === 0) return null;
 
-            // 1. 거리 계산
+            // 1. 모든 점과의 거리 계산
             const distances = points.map(p => {
                 return { ...p, dist: getDistance({x, y}, p) };
             });
@@ -139,94 +354,178 @@
             // 3. k개 이웃 선택
             const neighbors = distances.slice(0, k);
 
-            // 4. 다수결 투표
-            let redCount = 0;
-            let blueCount = 0;
+            // 4. 투표 (Voting)
+            const votes = {};
             neighbors.forEach(n => {
-                if (n.group === 'red') redCount++;
-                else blueCount++;
+                votes[n.group] = (votes[n.group] || 0) + 1;
             });
 
+            // 5. 최다 득표 그룹 찾기
+            let maxVotes = -1;
+            let winningGroup = 'Tie';
+            let isTie = false;
+
+            // 현재 활성화된 그룹 중에서만 비교 (혹시 데이터가 남아있을 경우 대비)
+            for (let group in votes) {
+                if (votes[group] > maxVotes) {
+                    maxVotes = votes[group];
+                    winningGroup = group;
+                    isTie = false;
+                } else if (votes[group] === maxVotes) {
+                    isTie = true;
+                }
+            }
+
             return {
-                group: redCount > blueCount ? 'Red' : (blueCount > redCount ? 'Blue' : 'Tie'),
-                neighbors: neighbors
+                group: isTie ? 'Tie' : winningGroup,
+                neighbors: neighbors,
+                votes: votes
             };
         }
 
-        // 그리기 함수
+        function updateStatus(result) {
+            if (!result) {
+                predText.textContent = "데이터가 없습니다.";
+                predDot.style.backgroundColor = "#ccc";
+                return;
+            }
+
+            if (result.group === 'Tie') {
+                predText.textContent = "판단 불가 (동점 발생)";
+                predText.style.color = "#555";
+                predDot.style.backgroundColor = "#aaa";
+            } else {
+                // 결과 텍스트 생성 (예: "Red 팀 예측 (3표)")
+                const config = CLASS_CONFIG.find(c => c.id === result.group);
+                const voteCount = result.votes[result.group];
+                
+                // 다른 팀 득표 현황 텍스트
+                let details = [];
+                for(let g in result.votes) {
+                     const c = CLASS_CONFIG.find(item => item.id === g);
+                     if(c) details.push(`${c.label} ${result.votes[g]}표`);
+                }
+                
+                predText.textContent = `${config.label} 팀 예측 (${details.join(', ')})`;
+                predText.style.color = config.darkColor;
+                predDot.style.backgroundColor = config.color;
+            }
+        }
+
+        // 화면 그리기
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 기존 데이터 포인트 그리기
+            // 1. 데이터 포인트 그리기
             points.forEach(p => {
+                const config = CLASS_CONFIG.find(c => c.id === p.group);
+                // 설정에 없는 그룹(삭제된 그룹 등)은 그리지 않음
+                if(!config) return; 
+
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
-                ctx.fillStyle = p.group === 'red' ? '#ff4d4d' : '#29b6f6';
+                ctx.arc(p.x, p.y, 7, 0, Math.PI * 2);
+                ctx.fillStyle = config.color;
                 ctx.fill();
-                ctx.strokeStyle = '#fff';
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
                 ctx.stroke();
             });
 
-            // 마우스 포인터 (Unknown Data) 처리
+            // 2. 마우스 커서(Unknown Point) 및 예측
             const k = parseInt(kSlider.value);
-            const result = predict(mouseX, mouseY, k);
+            if (mouseX >= 0 && mouseY >= 0 && mouseX <= canvas.width && mouseY <= canvas.height) {
+                const result = predict(mouseX, mouseY, k);
 
-            if (result) {
-                // 가장 가까운 이웃들과 선 연결
-                result.neighbors.forEach(n => {
+                if (result) {
+                    // 이웃 연결선
+                    result.neighbors.forEach(n => {
+                        ctx.beginPath();
+                        ctx.moveTo(mouseX, mouseY);
+                        ctx.lineTo(n.x, n.y);
+                        ctx.strokeStyle = '#bdbdbd';
+                        ctx.lineWidth = 1;
+                        ctx.setLineDash([5, 5]);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    });
+
+                    // 예측 결과 원
                     ctx.beginPath();
-                    ctx.moveTo(mouseX, mouseY);
-                    ctx.lineTo(n.x, n.y);
-                    ctx.strokeStyle = '#aaa';
-                    ctx.setLineDash([5, 5]); // 점선
+                    ctx.arc(mouseX, mouseY, 12, 0, Math.PI * 2);
+                    
+                    if (result.group === 'Tie') {
+                        ctx.fillStyle = '#9e9e9e';
+                    } else {
+                        const config = CLASS_CONFIG.find(c => c.id === result.group);
+                        ctx.fillStyle = config ? config.color : '#333';
+                    }
+                    
+                    ctx.fill();
+                    ctx.strokeStyle = '#333';
+                    ctx.lineWidth = 2;
                     ctx.stroke();
-                    ctx.setLineDash([]);
-                });
 
-                // 마우스 위치에 예측 결과 표시
-                ctx.beginPath();
-                ctx.arc(mouseX, mouseY, 10, 0, Math.PI * 2);
-                
-                if (result.group === 'Red') ctx.fillStyle = '#ff4d4d';
-                else if (result.group === 'Blue') ctx.fillStyle = '#29b6f6';
-                else ctx.fillStyle = '#gray'; // 동점일 때
-                
-                ctx.fill();
-                ctx.strokeStyle = '#333';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                ctx.lineWidth = 1;
-
-                // 텍스트 업데이트
-                resultSpan.textContent = result.group;
-                resultSpan.style.color = result.group === 'Red' ? '#d32f2f' : (result.group === 'Blue' ? '#0288d1' : '#555');
+                    updateStatus(result);
+                }
             }
         }
 
         // 이벤트 리스너
+        
+        // 마우스 이동
         canvas.addEventListener('mousemove', (e) => {
             const rect = canvas.getBoundingClientRect();
-            mouseX = e.clientX - rect.left;
-            mouseY = e.clientY - rect.top;
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            mouseX = (e.clientX - rect.left) * scaleX;
+            mouseY = (e.clientY - rect.top) * scaleY;
             draw();
         });
 
+        // 마우스 클릭 (데이터 추가)
         canvas.addEventListener('mousedown', (e) => {
             const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
             
-            // 클릭 시 데이터 추가
             points.push({ x, y, group: currentMode });
             draw();
         });
 
+        canvas.addEventListener('mouseleave', () => {
+            mouseX = -1000;
+            mouseY = -1000;
+            draw();
+            predText.textContent = "마우스를 캔버스 위로 올려보세요";
+            predDot.style.backgroundColor = "#ccc";
+        });
+
+        // K 값 변경
         kSlider.addEventListener('input', (e) => {
             kDisplay.textContent = e.target.value;
             draw();
         });
 
-        // 시작
+        // 군집 개수 변경
+        classCountSlider.addEventListener('input', (e) => {
+            const newVal = parseInt(e.target.value);
+            if(activeClassCount !== newVal) {
+                activeClassCount = newVal;
+                classCountDisplay.textContent = activeClassCount;
+                
+                // 모드가 사라지는 그룹인 경우, 첫 번째 그룹(Red)으로 리셋
+                if(currentMode === 'green' && activeClassCount < 3) currentMode = 'red';
+                if(currentMode === 'purple' && activeClassCount < 4) currentMode = 'red';
+
+                updateClassButtons();
+                initData(); // 개수 변경 시 데이터 리셋하여 혼란 방지
+            }
+        });
+
+        // 초기화 실행
+        updateClassButtons();
         initData();
     </script>
 </body>
