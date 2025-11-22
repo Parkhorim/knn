@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>kNN 알고리즘 시뮬레이터</title>
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        h1 { color: #333; margin-bottom: 10px; }
+        .controls {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .btn-red { background-color: #ffadad; color: #d32f2f; }
+        .btn-blue { background-color: #9bf6ff; color: #0288d1; }
+        .btn-reset { background-color: #e0e0e0; color: #333; }
+        button:hover { transform: scale(1.05); }
+        
+        #canvas-container {
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: crosshair;
+        }
+        canvas { background-color: white; display: block; }
+        
+        .status {
+            margin-top: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #555;
+        }
+        #prediction-result { color: #333; }
+    </style>
+</head>
+<body>
+
+    <h1>🔍 kNN 알고리즘 시뮬레이터</h1>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label for="k-value"><strong>K 값 (이웃 수):</strong> <span id="k-display">3</span></label>
+            <input type="range" id="k-value" min="1" max="15" value="3">
+        </div>
+        
+        <div class="control-group">
+            <span>데이터 추가 모드:</span>
+            <button class="btn-red" onclick="setMode('red')">Red 그룹</button>
+            <button class="btn-blue" onclick="setMode('blue')">Blue 그룹</button>
+        </div>
+
+        <button class="btn-reset" onclick="resetData()">초기화</button>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="knnCanvas" width="600" height="400"></canvas>
+    </div>
+
+    <div class="status">
+        현재 마우스 위치의 예측 등급: <span id="prediction-result">이동하여 확인</span>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('knnCanvas');
+        const ctx = canvas.getContext('2d');
+        const kSlider = document.getElementById('k-value');
+        const kDisplay = document.getElementById('k-display');
+        const resultSpan = document.getElementById('prediction-result');
+
+        let points = [];
+        let currentMode = 'red'; // 'red' or 'blue'
+        let mouseX = -100;
+        let mouseY = -100;
+
+        // 초기 데이터 생성
+        function initData() {
+            for(let i=0; i<10; i++) {
+                points.push({ x: Math.random()*600, y: Math.random()*400, group: 'red' });
+                points.push({ x: Math.random()*600, y: Math.random()*400, group: 'blue' });
+            }
+            draw();
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            // 버튼 스타일 업데이트 로직은 생략하고 직관적으로 처리
+        }
+
+        function resetData() {
+            points = [];
+            draw();
+        }
+
+        // 유클리드 거리 계산 함수
+        function getDistance(p1, p2) {
+            return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+        }
+
+        // kNN 핵심 로직
+        function predict(x, y, k) {
+            if (points.length === 0) return null;
+
+            // 1. 거리 계산
+            const distances = points.map(p => {
+                return { ...p, dist: getDistance({x, y}, p) };
+            });
+
+            // 2. 거리순 정렬
+            distances.sort((a, b) => a.dist - b.dist);
+
+            // 3. k개 이웃 선택
+            const neighbors = distances.slice(0, k);
+
+            // 4. 다수결 투표
+            let redCount = 0;
+            let blueCount = 0;
+            neighbors.forEach(n => {
+                if (n.group === 'red') redCount++;
+                else blueCount++;
+            });
+
+            return {
+                group: redCount > blueCount ? 'Red' : (blueCount > redCount ? 'Blue' : 'Tie'),
+                neighbors: neighbors
+            };
+        }
+
+        // 그리기 함수
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 기존 데이터 포인트 그리기
+            points.forEach(p => {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = p.group === 'red' ? '#ff4d4d' : '#29b6f6';
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.stroke();
+            });
+
+            // 마우스 포인터 (Unknown Data) 처리
+            const k = parseInt(kSlider.value);
+            const result = predict(mouseX, mouseY, k);
+
+            if (result) {
+                // 가장 가까운 이웃들과 선 연결
+                result.neighbors.forEach(n => {
+                    ctx.beginPath();
+                    ctx.moveTo(mouseX, mouseY);
+                    ctx.lineTo(n.x, n.y);
+                    ctx.strokeStyle = '#aaa';
+                    ctx.setLineDash([5, 5]); // 점선
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                });
+
+                // 마우스 위치에 예측 결과 표시
+                ctx.beginPath();
+                ctx.arc(mouseX, mouseY, 10, 0, Math.PI * 2);
+                
+                if (result.group === 'Red') ctx.fillStyle = '#ff4d4d';
+                else if (result.group === 'Blue') ctx.fillStyle = '#29b6f6';
+                else ctx.fillStyle = '#gray'; // 동점일 때
+                
+                ctx.fill();
+                ctx.strokeStyle = '#333';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.lineWidth = 1;
+
+                // 텍스트 업데이트
+                resultSpan.textContent = result.group;
+                resultSpan.style.color = result.group === 'Red' ? '#d32f2f' : (result.group === 'Blue' ? '#0288d1' : '#555');
+            }
+        }
+
+        // 이벤트 리스너
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
+            draw();
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // 클릭 시 데이터 추가
+            points.push({ x, y, group: currentMode });
+            draw();
+        });
+
+        kSlider.addEventListener('input', (e) => {
+            kDisplay.textContent = e.target.value;
+            draw();
+        });
+
+        // 시작
+        initData();
+    </script>
+</body>
+</html>
